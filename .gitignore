@@ -1,0 +1,13 @@
+# Sincronizar únicamente carpetas llamadas "Assets" y su contenido.
+# Todo lo demás se ignora.
+**/*
+
+# Permite recorrer directorios para encontrar Assets en cualquier nivel.
+!**/
+
+# Mantener este archivo versionado.
+!.gitignore
+
+# Incluir cualquier carpeta Assets y todo su contenido.
+!**/Assets/
+!**/Assets/**
