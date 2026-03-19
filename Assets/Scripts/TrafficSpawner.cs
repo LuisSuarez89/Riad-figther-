@@ -80,15 +80,19 @@ public class TrafficSpawner : MonoBehaviour
 
     private void SpawnFuelInLane(int lane)
     {
-        float z = player.position.z + Random.Range(minSpawnAhead, maxSpawnAhead);
-        float x = GetLaneX(lane);
-        Instantiate(fuelPickupPrefab, new Vector3(x, 0.5f, z), Quaternion.identity);
+        float distanceAhead = Random.Range(minSpawnAhead, maxSpawnAhead);
+        float xOffset = GetLaneX(lane);
+        
+        Vector3 spawnPos = player.position + player.forward * distanceAhead + player.right * xOffset;
+        spawnPos.y = 0.5f;
+
+        Instantiate(fuelPickupPrefab, spawnPos, player.rotation);
     }
 
     private void SpawnHazardInLane(int lane)
     {
-        float z = player.position.z + Random.Range(minSpawnAhead, maxSpawnAhead);
-        float x = GetLaneX(lane);
+        float distanceAhead = Random.Range(minSpawnAhead, maxSpawnAhead);
+        float xOffset = GetLaneX(lane);
 
         bool spawnObstacle = Random.value <= obstacleChance;
         GameObject prefab = PickRandom(spawnObstacle ? obstaclePrefabs : trafficPrefabs);
@@ -97,7 +101,11 @@ public class TrafficSpawner : MonoBehaviour
             return;
         }
 
-        GameObject spawned = Instantiate(prefab, new Vector3(x, 0f, z), Quaternion.identity);
+        Vector3 spawnPos = player.position + player.forward * distanceAhead + player.right * xOffset;
+        spawnPos.y = 0f;
+
+        Quaternion rot = spawnObstacle ? player.rotation : player.rotation * Quaternion.Euler(0f, 180f, 0f);
+        GameObject spawned = Instantiate(prefab, spawnPos, rot);
         SetupForwardDestroyer(spawned);
 
         if (!spawnObstacle && Random.value <= trafficMovingChance)

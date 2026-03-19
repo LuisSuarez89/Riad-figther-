@@ -33,11 +33,16 @@ public class PlayerCarController : MonoBehaviour
 
     public float CurrentForwardSpeed { get; private set; }
 
+    private Vector3 startPosition;
+    private Quaternion startRotation;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         EnableGyroscope();
+        startPosition = transform.position;
+        startRotation = transform.rotation;
     }
 
     private void Update()
@@ -64,19 +69,12 @@ public class PlayerCarController : MonoBehaviour
 
         CurrentForwardSpeed = Mathf.MoveTowards(CurrentForwardSpeed, targetForwardSpeed, acceleration * Time.deltaTime);
 
-        float targetX = Mathf.Clamp(GetHorizontalTarget(), -maxHorizontalOffset, maxHorizontalOffset);
-        float smoothTime = 1f / Mathf.Max(steeringSmoothing + lateralSpeed, 0.01f);
-        float smoothX = Mathf.SmoothDamp(transform.position.x, targetX, ref currentXVelocity, smoothTime);
-
-        Vector3 moved = transform.position;
-        moved.x = smoothX;
-        transform.position = moved;
-
-        float normalizedOffset = Mathf.InverseLerp(-maxHorizontalOffset, maxHorizontalOffset, targetX) * 2f - 1f;
-        float targetYaw = -normalizedOffset * visualTiltAngle;
-        if (!recoveringFromCrash)
+        if (!recoveringFromCrash && CurrentForwardSpeed > 0.1f)
         {
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, targetYaw, 0f), Time.deltaTime * steeringSmoothing);
+            float steerInput = GetSteeringInput();
+            // Convertimos lateralSpeed en grados de giro por segundo (ej. lateralSpeed 6 = 60 grados)
+            float turnDegreesPerSecond = lateralSpeed * 12f; 
+            transform.Rotate(0f, steerInput * turnDegreesPerSecond * Time.deltaTime, 0f, Space.World);
         }
 
         GameManager.Instance.RegisterTravel(CurrentForwardSpeed);
@@ -90,7 +88,9 @@ public class PlayerCarController : MonoBehaviour
             return;
         }
 
-        rb.velocity = new Vector3(0f, rb.velocity.y, CurrentForwardSpeed);
+        // Ahora el coche se mueve hacia donde esté mirando (su transform.forward local)
+        Vector3 forwardVelocity = transform.forward * CurrentForwardSpeed;
+        rb.velocity = new Vector3(forwardVelocity.x, rb.velocity.y, forwardVelocity.z);
     }
 
     public void Crash()
@@ -109,14 +109,14 @@ public class PlayerCarController : MonoBehaviour
         recoveringFromCrash = true;
         invulnerabilityTimer = invulnerabilityAfterCrash;
         float elapsed = 0f;
-        Quaternion startRotation = transform.rotation;
-        Quaternion endRotation = startRotation * Quaternion.Euler(0f, 360f, 0f);
+        Quaternion startCrashRot = transform.rotation;
+        Quaternion endCrashRot = startCrashRot * Quaternion.Euler(0f, 360f, 0f);
 
         while (elapsed < spinDuration)
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / spinDuration);
-            transform.rotation = Quaternion.Slerp(startRotation, endRotation, spinCurve.Evaluate(t));
+            transform.rotation = Quaternion.Slerp(startCrashRot, endCrashRot, spinCurve.Evaluate(t));
             yield return null;
         }
 
@@ -143,7 +143,7 @@ public class PlayerCarController : MonoBehaviour
         }
     }
 
-    private float GetHorizontalTarget()
+    private float GetSteeringInput()
     {
         if (gyroEnabled)
         {
@@ -154,11 +154,10 @@ public class PlayerCarController : MonoBehaviour
                 tilt -= 360f;
             }
 
-            return (tilt / 30f) * laneWidth * tiltSensitivity;
+            return Mathf.Clamp(tilt / 30f, -1f, 1f);
         }
 
-        float simulatedTilt = Input.GetAxis("Horizontal");
-        return simulatedTilt * laneWidth;
+        return Input.GetAxis("Horizontal");
     }
 
     private void OnTriggerEnter(Collider other)

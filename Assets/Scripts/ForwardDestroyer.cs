@@ -17,7 +17,10 @@ public class ForwardDestroyer : MonoBehaviour
             return;
         }
 
-        if (transform.position.z < player.position.z - destroyBehindDistance)
+        // Usar producto punto para saber qué tan atrás está respecto a la dirección del jugador
+        float distanceForward = Vector3.Dot(transform.position - player.position, player.forward);
+
+        if (distanceForward < -destroyBehindDistance)
         {
             Destroy(gameObject);
         }

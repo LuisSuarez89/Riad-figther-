@@ -20,16 +20,16 @@ public class TrafficMover : MonoBehaviour
             return;
         }
 
-        transform.Translate(Vector3.back * moveSpeed * Time.deltaTime, Space.World);
+        transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime, Space.Self);
 
-        if (faceMovementDirection)
+        // La rotación inicial se establece en el Spawner.
+        if (player != null)
         {
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, 180f, 0f), Time.deltaTime * 6f);
-        }
-
-        if (player != null && transform.position.z < player.position.z - 30f)
-        {
-            Destroy(gameObject);
+            float distanceForward = Vector3.Dot(transform.position - player.position, player.forward);
+            if (distanceForward < -30f)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }
