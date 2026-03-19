@@ -6,6 +6,12 @@ public class RoadScroller : MonoBehaviour
     [SerializeField] private float textureTilingSpeedMultiplier = 0.04f;
 
     private float textureOffset;
+    private PlayerCarController player;
+
+    private void Start()
+    {
+        player = FindObjectOfType<PlayerCarController>();
+    }
 
     private void Update()
     {
@@ -14,10 +20,13 @@ public class RoadScroller : MonoBehaviour
             return;
         }
 
-        PlayerCarController player = FindObjectOfType<PlayerCarController>();
         if (player == null)
         {
-            return;
+            player = FindObjectOfType<PlayerCarController>();
+            if (player == null)
+            {
+                return;
+            }
         }
 
         textureOffset += player.CurrentForwardSpeed * textureTilingSpeedMultiplier * Time.deltaTime;

@@ -11,9 +11,9 @@ Prototipo de juego estilo **Road Fighter** para móvil, con pista infinita, cont
   - Turbo (manteniendo el dedo en pantalla)
 - **Consumo de combustible según velocidad** (`GameManager`).
 - **Pickups de combustible** (`FuelPickup`).
-- **Obstáculos y tráfico aleatorio** (`TrafficSpawner`).
+- **Obstáculos, tráfico móvil y oleadas por carril** (`TrafficSpawner`, `TrafficMover`).
 - **Choque con trompo 360° y recuperación** (`PlayerCarController.CrashRoutine`).
-- **Game Over por combustible en cero** con guardado de mejor tiempo en `PlayerPrefs`.
+- **Game Over por combustible en cero**, reinicio rápido y guardado de mejor tiempo/distancia en `PlayerPrefs`.
 
 ## Estructura sugerida de escena
 
@@ -50,3 +50,19 @@ Prototipo de juego estilo **Road Fighter** para móvil, con pista infinita, cont
 ## Nota
 
 No se incluyen assets 3D/artísticos en este commit. Solo la base de gameplay y scripts C# para integrar en un proyecto Unity.
+
+
+## Mejoras de jugabilidad añadidas
+
+- **Dificultad progresiva**: el juego acelera el ritmo de aparición de tráfico a medida que sobrevives más tiempo.
+- **Distancia recorrida**: ahora puedes mostrar un contador de metros recorridos y guardar el mejor registro.
+- **Penalización por choque**: los impactos ya no solo hacen trompo; también consumen combustible y otorgan una breve invulnerabilidad.
+- **Tráfico con movimiento**: algunos carros spawneados avanzan hacia el jugador para darle más ritmo a la pista.
+- **Reinicio rápido**: al perder puedes tocar la pantalla o presionar `R` para volver a intentar.
+
+### UI opcional recomendada
+
+Además del `Slider` y los `Text` ya existentes, puedes conectar opcionalmente:
+
+- `distanceText`: muestra metros recorridos.
+- `statusText`: muestra modo actual (`Cruise`/`Turbo`) y la dificultad.
